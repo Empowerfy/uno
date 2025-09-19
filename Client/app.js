@@ -18,17 +18,14 @@ const wildModal = document.getElementById("wildModal");
 const colorBtns = document.querySelectorAll(".color-btn");
 const leaderboardDiv = document.getElementById("leaderboard");
 const bgMusic = document.getElementById("bg-music");
+const cardSound = document.getElementById("card-sound");
 const connectWalletBtn = document.getElementById("connectWalletBtn");
 const walletDisplay = document.getElementById("walletDisplay");
 
-// 🎵 Sounds
-const cardSound = document.getElementById("card-sound");
-
-// Timer
 let countdownInterval = null;
-let pendingWildCard = null; // <-- Track the wild card chosen
+let pendingWildCard = null;
 
-// ✅ Auto-fill nickname if wallet is already connected
+// ✅ Auto-fill nickname if wallet already connected
 window.addEventListener("load", () => {
   const wallet = localStorage.getItem("unoWallet");
   if (wallet) {
@@ -39,30 +36,30 @@ window.addEventListener("load", () => {
   }
 });
 
-// ✅ Handle wallet connection
-connectWalletBtn.addEventListener("click", async () => {
-  if (window.solana && window.solana.isPhantom) {
-    try {
-      const resp = await window.solana.connect();
-      const wallet = resp.publicKey.toString();
-      localStorage.setItem("unoWallet", wallet);
+// ✅ Wallet connect
+if (connectWalletBtn) {
+  connectWalletBtn.addEventListener("click", async () => {
+    if (window.solana && window.solana.isPhantom) {
+      try {
+        const resp = await window.solana.connect();
+        const wallet = resp.publicKey.toString();
+        localStorage.setItem("unoWallet", wallet);
 
-      if (walletDisplay) {
         walletDisplay.textContent = `✅ ${wallet.slice(0, 4)}...${wallet.slice(-4)}`;
         walletDisplay.style.fontWeight = "bold";
-      }
 
-      if (!nicknameInput.value.trim()) {
-        nicknameInput.value = wallet.slice(0, 4) + "..." + wallet.slice(-4);
+        if (!nicknameInput.value.trim()) {
+          nicknameInput.value = wallet.slice(0, 4) + "..." + wallet.slice(-4);
+        }
+      } catch (err) {
+        console.error("Wallet connection failed", err);
       }
-    } catch (err) {
-      console.error("Wallet connection failed", err);
+    } else {
+      alert("⚠️ Phantom Wallet not found. Please install it.");
+      window.open("https://phantom.app/", "_blank");
     }
-  } else {
-    alert("⚠️ Phantom Wallet not found. Please install it.");
-    window.open("https://phantom.app/", "_blank");
-  }
-});
+  });
+}
 
 // ✅ Join game
 joinBtn.addEventListener("click", () => {
@@ -78,33 +75,40 @@ joinBtn.addEventListener("click", () => {
   nicknameInput.disabled = true;
   connectWalletBtn.disabled = true;
 
+  // 🎵 Start background music
   bgMusic.loop = true;
-  bgMusic.play().catch(() => {});
+  bgMusic.volume = 0.5;
+  bgMusic.play().catch(() => {
+    // Fallback: start music after first user click
+    document.body.addEventListener("click", () => {
+      if (bgMusic.paused) bgMusic.play().catch(() => {});
+    }, { once: true });
+  });
 });
 
 // ✅ Draw card
 drawBtn.addEventListener("click", () => {
   socket.emit("drawCard");
-  cardSound.play().catch(() => {});
+  if (cardSound) cardSound.play().catch(() => {});
 });
 
-// ✅ Wild card color selection
+// ✅ Wild color modal
 colorBtns.forEach(btn => {
   btn.addEventListener("click", () => {
     if (!pendingWildCard) return;
     const color = btn.getAttribute("data-color");
 
-    // Send playCard with wild, then apply color
     socket.emit("playCard", pendingWildCard);
     socket.emit("chooseColor", color);
 
     wildModal.style.display = "none";
     pendingWildCard = null;
-    cardSound.play().catch(() => {});
+
+    if (cardSound) cardSound.play().catch(() => {});
   });
 });
 
-// ✅ Game state update
+// ✅ Game state
 socket.on("gameState", game => {
   renderStatus(game);
   renderPlayers(game);
@@ -114,7 +118,7 @@ socket.on("gameState", game => {
   renderTimer(game);
 });
 
-// ✅ Game Over
+// ✅ Game Over + Restart overlay
 socket.on("gameOver", data => {
   alert(`🎉 ${data.winner} won this round!`);
 
@@ -140,11 +144,11 @@ socket.on("gameOver", data => {
     overlay.style.display = "none";
     clearInterval(interval);
     socket.disconnect();
-    alert("👋 You left the game. Refresh the page to rejoin.");
+    alert("👋 You left the game. Refresh to rejoin.");
   };
 });
 
-// ✅ Global leaderboard updates
+// ✅ Global leaderboard
 socket.on("globalLeaderboard", data => {
   renderLeaderboard({ leaderboard: data });
 });
@@ -196,12 +200,11 @@ function renderHand(game) {
       cardEl.classList.add("playable");
       cardEl.addEventListener("click", () => {
         if (card.type === "wild" || card.type === "wild+4") {
-          // Don’t play immediately — open modal
           pendingWildCard = card;
           wildModal.style.display = "flex";
         } else {
           socket.emit("playCard", card);
-          cardSound.play().catch(() => {});
+          if (cardSound) cardSound.play().catch(() => {});
         }
       });
     } else {
@@ -211,7 +214,7 @@ function renderHand(game) {
     handDiv.appendChild(cardEl);
   });
 
-  // ✅ Draw button logic
+  // ✅ Draw button
   if (!game.started) {
     drawBtn.disabled = true;
     drawBtn.classList.remove("highlight");
@@ -246,7 +249,6 @@ function renderLeaderboard(game) {
   }
 }
 
-// ✅ Timer synced with server
 function renderTimer(game) {
   clearInterval(countdownInterval);
   if (game.turnTime !== undefined) {
@@ -289,10 +291,6 @@ function createCardElement(card, isTop = false) {
     const val = card.value !== undefined ? card.value : "?";
     const numEl = document.createElement("span");
     numEl.textContent = val;
-    numEl.style.fontSize = "3rem";
-    numEl.style.fontWeight = "bold";
-    numEl.style.color = "white";
-    numEl.style.textShadow = "0 0 5px black, 0 0 10px black";
     div.appendChild(numEl);
   } else if (card.type === "skip") {
     bgImg = "skip.png";
@@ -301,8 +299,6 @@ function createCardElement(card, isTop = false) {
   } else if (card.type === "plus2") {
     const text = document.createElement("span");
     text.textContent = "+2";
-    text.style.fontSize = "2.5rem";
-    text.style.fontWeight = "bold";
     div.appendChild(text);
   } else if (["plus4", "wild+4", "wild"].includes(card.type)) {
     bgImg = "wildcard.png";
