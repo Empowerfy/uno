@@ -15,6 +15,7 @@ const wildModal = document.getElementById("wildModal");
 const colorBtns = document.querySelectorAll(".color-btn");
 const leaderboardDiv = document.getElementById("leaderboard");
 const bgMusic = document.getElementById("bg-music");
+const connectWalletBtn = document.getElementById("connectWalletBtn");
 
 // 🎵 Sounds
 const cardSound = new Audio("card.mp3");
@@ -22,18 +23,51 @@ const cardSound = new Audio("card.mp3");
 // Timer
 let countdownInterval = null;
 
+// ✅ Auto-fill nickname if wallet is already connected
+window.addEventListener("load", () => {
+  const wallet = localStorage.getItem("unoWallet");
+  if (wallet) {
+    nicknameInput.value = wallet.slice(0, 4) + "..." + wallet.slice(-4);
+  }
+});
+
+// ✅ Handle wallet connection
+connectWalletBtn.addEventListener("click", async () => {
+  if (window.solana && window.solana.isPhantom) {
+    try {
+      const resp = await window.solana.connect();
+      const wallet = resp.publicKey.toString();
+      localStorage.setItem("unoWallet", wallet);
+
+      alert(`✅ Wallet connected: ${wallet.slice(0, 4)}...${wallet.slice(-4)}`);
+
+      // Auto-fill nickname with wallet if empty
+      if (!nicknameInput.value.trim()) {
+        nicknameInput.value = wallet.slice(0, 4) + "..." + wallet.slice(-4);
+      }
+    } catch (err) {
+      console.error("Wallet connection failed", err);
+    }
+  } else {
+    alert("⚠️ Phantom Wallet not found. Please install it.");
+    window.open("https://phantom.app/", "_blank");
+  }
+});
+
 // ✅ Join game
 joinBtn.addEventListener("click", () => {
   let nickname = nicknameInput.value.trim() || "Anon";
   const wallet = localStorage.getItem("unoWallet");
+
   if (wallet) {
-    nickname += ` (${wallet.slice(0, 4)}...${wallet.slice(-4)})`;
+    nickname = `${nickname} (${wallet.slice(0, 4)}...${wallet.slice(-4)})`;
   }
 
   socket.emit("joinGame", { nickname });
 
   joinBtn.disabled = true;
   nicknameInput.disabled = true;
+  connectWalletBtn.disabled = true;
 
   // Start background music (loop)
   bgMusic.loop = true;
@@ -170,7 +204,11 @@ function renderHand(game) {
     drawBtn.disabled = true;
     drawBtn.classList.remove("highlight");
   } else {
-    const myNickname = nicknameInput.value.trim() || "Anon";
+    const wallet = localStorage.getItem("unoWallet");
+    const myNickname = wallet
+      ? (nicknameInput.value.trim() || "Anon") + ` (${wallet.slice(0, 4)}...${wallet.slice(-4)})`
+      : nicknameInput.value.trim() || "Anon";
+
     const myTurn = game.players[game.currentPlayer].nickname.startsWith(myNickname);
 
     if (myTurn && !hasPlayable) {
@@ -243,7 +281,6 @@ function createCardElement(card, isTop = false) {
 
   let bgImg = "";
 
-  // ✅ Number cards → only 1 number in center
   if (card.type === "number") {
     const val = card.value !== undefined ? card.value : "?";
 
@@ -268,7 +305,6 @@ function createCardElement(card, isTop = false) {
     bgImg = "wildcard.png";
   }
 
-  // Apply background if needed
   if (bgImg) {
     div.style.backgroundImage = `url(${bgImg})`;
     div.style.backgroundSize = "cover";

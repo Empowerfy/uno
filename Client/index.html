@@ -13,6 +13,7 @@
   <div id="controls">
     <input id="nicknameInput" type="text" placeholder="Enter nickname" />
     <button id="joinBtn">Join Game</button>
+    <button id="connectWalletBtn">🔗 Connect Wallet</button>
   </div>
 
   <!-- Status -->
@@ -25,7 +26,7 @@
   <!-- Game board -->
   <div class="board">
     <div id="top-card"></div>
-    <!-- Pick Up button moved here -->
+    <!-- Pick Up button -->
     <button id="drawBtn" class="draw-btn" disabled>Pick Up</button>
   </div>
 
@@ -65,10 +66,38 @@
   </div>
 
   <!-- Sounds -->
-  <audio id="bg-music" src="background.mp3"></audio>
+  <audio id="bg-music" src="background.mp3" loop></audio>
+  <audio id="card-sound" src="card.mp3"></audio>
 
   <!-- Scripts -->
   <script src="/socket.io/socket.io.js"></script>
+  <script>
+    // ✅ Wallet connect logic (Phantom)
+    const connectWalletBtn = document.getElementById("connectWalletBtn");
+    connectWalletBtn.addEventListener("click", async () => {
+      if (window.solana && window.solana.isPhantom) {
+        try {
+          const resp = await window.solana.connect();
+          const wallet = resp.publicKey.toString();
+          localStorage.setItem("unoWallet", wallet);
+          alert(`✅ Wallet connected: ${wallet.slice(0,4)}...${wallet.slice(-4)}`);
+        } catch (err) {
+          console.error("Wallet connection failed", err);
+        }
+      } else {
+        alert("⚠️ Phantom Wallet not found. Please install it.");
+        window.open("https://phantom.app/", "_blank");
+      }
+    });
+
+    // ✅ Background music auto-play after first interaction
+    const bgMusic = document.getElementById("bg-music");
+    document.addEventListener("click", () => {
+      if (bgMusic.paused) {
+        bgMusic.play().catch(() => {});
+      }
+    }, { once: true });
+  </script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -10,11 +10,6 @@ const io = new Server(server);
 // ✅ Serve static client files
 app.use(express.static(path.join(__dirname, "../Client")));
 
-// ✅ Serve index.html for root route
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../Client/index.html"));
-});
-
 let lobbies = [];
 let leaderboard = {};
 let cardId = 0;
@@ -55,6 +50,7 @@ function canPlayCard(card, topCard) {
 
   if (card.type === "wild" || card.type === "wild+4") return true;
 
+  // respect chosen color after wild
   if ((topCard.type === "wild" || topCard.type === "wild+4") && topCard.color) {
     return card.color === topCard.color;
   }
@@ -284,5 +280,6 @@ io.on("connection", socket => {
   });
 });
 
+// ✅ Render uses process.env.PORT
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
