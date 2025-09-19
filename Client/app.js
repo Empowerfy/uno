@@ -18,16 +18,14 @@ const wildModal = document.getElementById("wildModal");
 const colorBtns = document.querySelectorAll(".color-btn");
 const leaderboardDiv = document.getElementById("leaderboard");
 const bgMusic = document.getElementById("bg-music");
+const cardSound = document.getElementById("card-sound");
 const connectWalletBtn = document.getElementById("connectWalletBtn");
 const walletDisplay = document.getElementById("walletDisplay");
-
-// 🎵 Sounds
-const cardSound = new Audio("card.mp3");
 
 // Timer
 let countdownInterval = null;
 
-// ✅ Auto-fill nickname if wallet already connected
+// ✅ Auto-fill nickname if wallet is already connected
 window.addEventListener("load", () => {
   const wallet = localStorage.getItem("unoWallet");
   if (wallet) {
@@ -44,7 +42,7 @@ connectWalletBtn.addEventListener("click", async () => {
       const wallet = resp.publicKey.toString();
       localStorage.setItem("unoWallet", wallet);
 
-      // Show wallet on page
+      // Show wallet in UI
       walletDisplay.textContent = `✅ ${wallet.slice(0, 4)}...${wallet.slice(-4)}`;
       walletDisplay.style.fontWeight = "bold";
       walletDisplay.style.marginLeft = "10px";
@@ -77,7 +75,7 @@ joinBtn.addEventListener("click", () => {
   nicknameInput.disabled = true;
   connectWalletBtn.disabled = true;
 
-  // Start background music (loop)
+  // Start background music
   bgMusic.loop = true;
   bgMusic.play().catch(() => {});
 });
@@ -146,7 +144,6 @@ socket.on("globalLeaderboard", data => {
 // =====================
 // Rendering functions
 // =====================
-
 function renderStatus(game) {
   if (!game.started) {
     statusDiv.textContent = `Game will start once 4 players join (${game.players.length}/4 joined)`;
@@ -233,7 +230,7 @@ function renderLeaderboard(game) {
   leaderboardDiv.innerHTML = "<h2>🌍 Global Leaderboard</h2>";
   if (game.leaderboard) {
     Object.entries(game.leaderboard)
-      .sort((a, b) => b[1] - a[1]) // highest wins first
+      .sort((a, b) => b[1] - a[1])
       .forEach(([name, wins]) => {
         const div = document.createElement("div");
         div.textContent = `${name}: ${wins} wins`;
@@ -242,7 +239,6 @@ function renderLeaderboard(game) {
   }
 }
 
-// ✅ Timer synced with server
 function renderTimer(game) {
   clearInterval(countdownInterval);
 
@@ -284,14 +280,13 @@ function createCardElement(card, isTop = false) {
   div.classList.add("card");
 
   if (card.color) {
-    div.classList.add(card.color); // red, blue, green, yellow
+    div.classList.add(card.color);
   }
 
   let bgImg = "";
 
   if (card.type === "number") {
     const val = card.value !== undefined ? card.value : "?";
-
     const numEl = document.createElement("span");
     numEl.textContent = val;
     numEl.style.fontSize = "3rem";
