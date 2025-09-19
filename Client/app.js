@@ -1,4 +1,7 @@
-const socket = io();
+// 🔗 Connect to your deployed backend on Render
+const socket = io("https://uno-sol.onrender.com", {
+  transports: ["websocket", "polling"]
+});
 
 // Elements
 const statusDiv = document.getElementById("status");
@@ -16,6 +19,7 @@ const colorBtns = document.querySelectorAll(".color-btn");
 const leaderboardDiv = document.getElementById("leaderboard");
 const bgMusic = document.getElementById("bg-music");
 const connectWalletBtn = document.getElementById("connectWalletBtn");
+const walletDisplay = document.getElementById("walletDisplay");
 
 // 🎵 Sounds
 const cardSound = new Audio("card.mp3");
@@ -23,11 +27,12 @@ const cardSound = new Audio("card.mp3");
 // Timer
 let countdownInterval = null;
 
-// ✅ Auto-fill nickname if wallet is already connected
+// ✅ Auto-fill nickname if wallet already connected
 window.addEventListener("load", () => {
   const wallet = localStorage.getItem("unoWallet");
   if (wallet) {
     nicknameInput.value = wallet.slice(0, 4) + "..." + wallet.slice(-4);
+    walletDisplay.textContent = `✅ ${wallet.slice(0, 4)}...${wallet.slice(-4)}`;
   }
 });
 
@@ -39,9 +44,12 @@ connectWalletBtn.addEventListener("click", async () => {
       const wallet = resp.publicKey.toString();
       localStorage.setItem("unoWallet", wallet);
 
-      alert(`✅ Wallet connected: ${wallet.slice(0, 4)}...${wallet.slice(-4)}`);
+      // Show wallet on page
+      walletDisplay.textContent = `✅ ${wallet.slice(0, 4)}...${wallet.slice(-4)}`;
+      walletDisplay.style.fontWeight = "bold";
+      walletDisplay.style.marginLeft = "10px";
 
-      // Auto-fill nickname with wallet if empty
+      // Auto-fill nickname if empty
       if (!nicknameInput.value.trim()) {
         nicknameInput.value = wallet.slice(0, 4) + "..." + wallet.slice(-4);
       }
