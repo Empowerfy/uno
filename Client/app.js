@@ -1,4 +1,4 @@
-// 🔗 Connect to deployed backend on Render
+// 🔗 Connect to your deployed backend on Render
 const socket = io("https://uno-official.onrender.com", {
   transports: ["websocket", "polling"]
 });
@@ -22,17 +22,20 @@ const connectWalletBtn = document.getElementById("connectWalletBtn");
 const walletDisplay = document.getElementById("walletDisplay");
 
 // 🎵 Sounds
-const cardSound = new Audio("card.mp3");
+const cardSound = document.getElementById("card-sound");
 
 // Timer
 let countdownInterval = null;
+let pendingWildCard = null; // <-- Track the wild card chosen
 
 // ✅ Auto-fill nickname if wallet is already connected
 window.addEventListener("load", () => {
   const wallet = localStorage.getItem("unoWallet");
   if (wallet) {
     nicknameInput.value = wallet.slice(0, 4) + "..." + wallet.slice(-4);
-    walletDisplay.textContent = `✅ ${wallet.slice(0, 4)}...${wallet.slice(-4)}`;
+    if (walletDisplay) {
+      walletDisplay.textContent = `✅ ${wallet.slice(0, 4)}...${wallet.slice(-4)}`;
+    }
   }
 });
 
@@ -44,11 +47,11 @@ connectWalletBtn.addEventListener("click", async () => {
       const wallet = resp.publicKey.toString();
       localStorage.setItem("unoWallet", wallet);
 
-      // Show wallet on page
-      walletDisplay.textContent = `✅ ${wallet.slice(0, 4)}...${wallet.slice(-4)}`;
-      walletDisplay.style.fontWeight = "bold";
+      if (walletDisplay) {
+        walletDisplay.textContent = `✅ ${wallet.slice(0, 4)}...${wallet.slice(-4)}`;
+        walletDisplay.style.fontWeight = "bold";
+      }
 
-      // Auto-fill nickname if empty
       if (!nicknameInput.value.trim()) {
         nicknameInput.value = wallet.slice(0, 4) + "..." + wallet.slice(-4);
       }
@@ -65,7 +68,6 @@ connectWalletBtn.addEventListener("click", async () => {
 joinBtn.addEventListener("click", () => {
   let nickname = nicknameInput.value.trim() || "Anon";
   const wallet = localStorage.getItem("unoWallet");
-
   if (wallet) {
     nickname = `${nickname} (${wallet.slice(0, 4)}...${wallet.slice(-4)})`;
   }
@@ -89,9 +91,16 @@ drawBtn.addEventListener("click", () => {
 // ✅ Wild card color selection
 colorBtns.forEach(btn => {
   btn.addEventListener("click", () => {
+    if (!pendingWildCard) return;
     const color = btn.getAttribute("data-color");
+
+    // Send playCard with wild, then apply color
+    socket.emit("playCard", pendingWildCard);
     socket.emit("chooseColor", color);
+
     wildModal.style.display = "none";
+    pendingWildCard = null;
+    cardSound.play().catch(() => {});
   });
 });
 
@@ -187,12 +196,13 @@ function renderHand(game) {
       cardEl.classList.add("playable");
       cardEl.addEventListener("click", () => {
         if (card.type === "wild" || card.type === "wild+4") {
+          // Don’t play immediately — open modal
+          pendingWildCard = card;
           wildModal.style.display = "flex";
-          socket.emit("playCard", card);
         } else {
           socket.emit("playCard", card);
+          cardSound.play().catch(() => {});
         }
-        cardSound.play().catch(() => {});
       });
     } else {
       cardEl.classList.add("disabled");
@@ -201,6 +211,7 @@ function renderHand(game) {
     handDiv.appendChild(cardEl);
   });
 
+  // ✅ Draw button logic
   if (!game.started) {
     drawBtn.disabled = true;
     drawBtn.classList.remove("highlight");
@@ -235,6 +246,7 @@ function renderLeaderboard(game) {
   }
 }
 
+// ✅ Timer synced with server
 function renderTimer(game) {
   clearInterval(countdownInterval);
   if (game.turnTime !== undefined) {
