@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UNO on Solana</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>UNO on <span class="sol">Solana</span></h1>
+
+  <!-- Controls -->
+  <div id="controls">
+    <input id="nicknameInput" type="text" placeholder="Enter nickname" />
+    <button id="joinBtn">Join Game</button>
+  </div>
+
+  <!-- Status -->
+  <div id="status">Waiting for players...</div>
+  <div id="waiting"></div>
+
+  <!-- Players -->
+  <div id="players" class="players"></div>
+
+  <!-- Game board -->
+  <div class="board">
+    <div id="top-card"></div>
+    <!-- Pick Up button moved here -->
+    <button id="drawBtn" class="draw-btn" disabled>Pick Up</button>
+  </div>
+
+  <!-- Timer -->
+  <div id="timer">⏳ 30s</div>
+  <div id="timer-bar">
+    <div id="timer-fill"></div>
+  </div>
+
+  <!-- Player hand -->
+  <div id="hand" class="hand"></div>
+
+  <!-- Wild color modal -->
+  <div id="wildModal" class="modal">
+    <div class="modal-content">
+      <h2>Choose a Color</h2>
+      <div class="color-buttons">
+        <button class="color-btn" data-color="red" style="background:red"></button>
+        <button class="color-btn" data-color="green" style="background:green"></button>
+        <button class="color-btn" data-color="blue" style="background:blue"></button>
+        <button class="color-btn" data-color="yellow" style="background:yellow"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaderboard -->
+  <div id="leaderboard" class="leaderboard">
+    <h2>🌍 Global Leaderboard</h2>
+  </div>
+
+  <!-- Next game overlay -->
+  <div id="nextGameOverlay" class="modal">
+    <div class="modal-content">
+      <h2 id="nextGameMessage">Next game starting...</h2>
+      <button id="leaveBtn">Leave Game</button>
+    </div>
+  </div>
+
+  <!-- Sounds -->
+  <audio id="bg-music" src="background.mp3"></audio>
+
+  <!-- Scripts -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

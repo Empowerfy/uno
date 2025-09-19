@@ -1,0 +1,338 @@
+/* 🎨 Background */
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  color: white;
+  text-align: center;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background: linear-gradient(-45deg, #ff512f, #dd2476, #24c6dc, #5433ff);
+  background-size: 400% 400%;
+  animation: gradientBG 12s ease infinite;
+  overflow-x: hidden;
+}
+
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* 🏷️ Title */
+h1 {
+  margin-top: 20px;
+  font-size: 3rem;
+  font-weight: 800;
+  text-shadow: 0 0 15px #fff, 0 0 30px #ffeb3b;
+}
+
+h1 .sol {
+  color: #ffeb3b;
+  text-shadow: 0 0 20px #ffeb3b, 0 0 40px #fbc02d;
+}
+
+/* 🕹️ Controls */
+#controls {
+  margin: 15px;
+}
+
+#controls input, #controls button {
+  padding: 10px 15px;
+  margin: 5px;
+  border-radius: 12px;
+  border: none;
+  font-size: 1rem;
+}
+
+#controls input {
+  outline: none;
+  text-align: center;
+}
+
+#controls button {
+  background: #ff5722;
+  color: white;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+#controls button:hover {
+  transform: scale(1.1);
+  background: #ff7043;
+}
+
+/* 📜 Status + Timer */
+#status, #waiting {
+  margin: 10px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-shadow: 0 0 10px #000;
+}
+
+#timer {
+  margin: 10px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-shadow: 0 0 10px #000;
+}
+
+#timer-bar {
+  width: 300px;
+  height: 15px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 10px;
+  margin: 10px auto;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+#timer-fill {
+  height: 100%;
+  width: 100%;
+  background: limegreen;
+  transition: width 1s linear, background 0.3s;
+}
+
+#timer-fill.warning {
+  animation: flash 1s infinite;
+}
+
+@keyframes flash {
+  0% { background: red; }
+  50% { background: darkred; }
+  100% { background: red; }
+}
+
+/* 👥 Players */
+.players {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 10px;
+}
+
+.player-info {
+  background: rgba(0,0,0,0.4);
+  padding: 8px 14px;
+  margin: 5px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  transition: all 0.3s;
+}
+
+.player-info.current-turn {
+  background: #00e676;
+  color: black;
+  box-shadow: 0 0 20px #00e676, 0 0 40px #00e676;
+}
+
+.player-info.uno-warning {
+  background: #ff1744;
+  color: white;
+  font-weight: bold;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* 🎮 Game Table */
+.board {
+  position: relative;
+  margin: 40px auto;
+  width: 500px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, rgba(0,0,0,0.6), rgba(0,0,0,0.9));
+  box-shadow: 0 0 50px #00e5ff, 0 0 100px #00e5ff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#top-card {
+  position: relative;
+  z-index: 2;
+}
+
+#top-card .top-card {
+  box-shadow: 0 0 20px #fff, 0 0 40px #00e5ff, 0 0 60px #00e5ff;
+  transform: translateX(-50%) scale(1.2);
+  border: 2px solid #fff;
+}
+
+/* 🕹️ Pick Up Button (moved left of board) */
+.draw-btn {
+  position: absolute;
+  left: -120px;       /* move left of board */
+  top: 50%;           /* center vertically */
+  transform: translateY(-50%);
+  padding: 12px 24px;
+  font-size: 1.2rem;
+  border-radius: 20px;
+  border: none;
+  background: #ffeb3b;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s;
+  z-index: 10;
+}
+
+.draw-btn:hover {
+  transform: translateY(-50%) scale(1.1);
+  background: #ffee58;
+}
+
+.draw-btn.highlight {
+  background: #00e676 !important;
+  color: black !important;
+  box-shadow: 0 0 20px #00e676, 0 0 40px #00e676;
+}
+
+.draw-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* 🎴 Hand */
+.hand {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+/* 🎴 Base card styling */
+.card {
+  position: relative;
+  width: 100px;
+  height: 150px;
+  border-radius: 15px;
+  margin: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 3.5rem;
+  color: white;
+  text-shadow: 0 0 5px black, 0 0 10px black;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.3s;
+  background-size: cover;
+  background-position: center;
+  background-blend-mode: overlay;
+  overflow: hidden;
+}
+
+.card.playable:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 20px #00ff99, 0 0 40px #00ff99;
+  border: 2px solid #00ff99;
+}
+
+.card.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* 🎨 UNO ellipse overlay */
+.card::before {
+  content: "";
+  position: absolute;
+  width: 160%;
+  height: 160%;
+  top: -30%;
+  left: -30%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  transform: rotate(-25deg);
+  z-index: 0;
+}
+
+.card * {
+  position: relative;
+  z-index: 1;
+}
+
+/* 🎨 Memecoin Backgrounds */
+.card.red {
+  background-image: url("dogwifhat.png");
+  background-color: rgba(255, 75, 43, 0.85);
+}
+
+.card.green {
+  background-image: url("pepe.png");
+  background-color: rgba(46, 125, 50, 0.85);
+}
+
+.card.blue {
+  background-image: url("pudgy.png");
+  background-color: rgba(21, 101, 192, 0.85);
+}
+
+.card.yellow {
+  background-image: url("shiba.png");
+  background-color: rgba(251, 192, 45, 0.85);
+}
+
+/* 🌈 Wild */
+.card.wild {
+  background: linear-gradient(135deg, #000, #444);
+  font-size: 2rem;
+  color: #ff66cc;
+}
+
+/* 🎨 Special icons */
+.card.reverse {
+  background-image: url("reverse.png");
+  background-size: 60% auto;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.card.skip {
+  background-image: url("skip.png");
+  background-size: 60% auto;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.card.plus2,
+.card.plus4 {
+  font-size: 2.8rem;
+}
+
+/* 🏆 Leaderboard */
+.leaderboard {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(0,0,0,0.6);
+  padding: 15px;
+  border-radius: 12px;
+  width: 220px;
+  text-align: left;
+  box-shadow: 0 0 15px #00e5ff;
+}
+
+.leaderboard h2 {
+  margin-top: 0;
+  font-size: 1.2rem;
+  text-align: center;
+  color: #ffeb3b;
+}
+
+.leaderboard div {
+  margin: 5px 0;
+  font-size: 1rem;
+}
