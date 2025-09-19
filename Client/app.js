@@ -1,5 +1,5 @@
 // 🔗 Connect to your deployed backend on Render
-const socket = io("https://uno-sol.onrender.com", {
+const socket = io("https://uno-official.onrender.com", {
   transports: ["websocket", "polling"]
 });
 
