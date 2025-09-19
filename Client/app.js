@@ -1,4 +1,4 @@
-// 🔗 Connect to your deployed backend on Render
+// 🔗 Connect to deployed backend on Render
 const socket = io("https://uno-official.onrender.com", {
   transports: ["websocket", "polling"]
 });
@@ -18,9 +18,11 @@ const wildModal = document.getElementById("wildModal");
 const colorBtns = document.querySelectorAll(".color-btn");
 const leaderboardDiv = document.getElementById("leaderboard");
 const bgMusic = document.getElementById("bg-music");
-const cardSound = document.getElementById("card-sound");
 const connectWalletBtn = document.getElementById("connectWalletBtn");
 const walletDisplay = document.getElementById("walletDisplay");
+
+// 🎵 Sounds
+const cardSound = new Audio("card.mp3");
 
 // Timer
 let countdownInterval = null;
@@ -42,10 +44,9 @@ connectWalletBtn.addEventListener("click", async () => {
       const wallet = resp.publicKey.toString();
       localStorage.setItem("unoWallet", wallet);
 
-      // Show wallet in UI
+      // Show wallet on page
       walletDisplay.textContent = `✅ ${wallet.slice(0, 4)}...${wallet.slice(-4)}`;
       walletDisplay.style.fontWeight = "bold";
-      walletDisplay.style.marginLeft = "10px";
 
       // Auto-fill nickname if empty
       if (!nicknameInput.value.trim()) {
@@ -75,7 +76,6 @@ joinBtn.addEventListener("click", () => {
   nicknameInput.disabled = true;
   connectWalletBtn.disabled = true;
 
-  // Start background music
   bgMusic.loop = true;
   bgMusic.play().catch(() => {});
 });
@@ -127,7 +127,6 @@ socket.on("gameOver", data => {
     }
   }, 1000);
 
-  // Allow leaving
   leaveBtn.onclick = () => {
     overlay.style.display = "none";
     clearInterval(interval);
@@ -171,7 +170,6 @@ function renderPlayers(game) {
 function renderTopCard(game) {
   topCardDiv.innerHTML = "";
   if (!game.topCard) return;
-
   const cardEl = createCardElement(game.topCard, true);
   cardEl.classList.add("top-card");
   topCardDiv.appendChild(cardEl);
@@ -179,7 +177,6 @@ function renderTopCard(game) {
 
 function renderHand(game) {
   handDiv.innerHTML = "";
-
   let hasPlayable = false;
 
   game.hand.forEach(card => {
@@ -204,7 +201,6 @@ function renderHand(game) {
     handDiv.appendChild(cardEl);
   });
 
-  // ✅ Draw button logic
   if (!game.started) {
     drawBtn.disabled = true;
     drawBtn.classList.remove("highlight");
@@ -241,13 +237,10 @@ function renderLeaderboard(game) {
 
 function renderTimer(game) {
   clearInterval(countdownInterval);
-
   if (game.turnTime !== undefined) {
     let timeLeft = game.turnTime;
-
     timerDiv.style.display = "block";
     timerFill.parentElement.style.display = "block";
-
     timerDiv.textContent = `⏳ ${timeLeft}s`;
     timerFill.style.width = `${(timeLeft / 30) * 100}%`;
 
@@ -256,7 +249,6 @@ function renderTimer(game) {
       if (timeLeft >= 0) {
         timerDiv.textContent = `⏳ ${timeLeft}s`;
         timerFill.style.width = `${(timeLeft / 30) * 100}%`;
-
         if (timeLeft <= 5) {
           timerFill.classList.add("warning");
         } else {
@@ -278,13 +270,9 @@ function renderTimer(game) {
 function createCardElement(card, isTop = false) {
   const div = document.createElement("div");
   div.classList.add("card");
-
-  if (card.color) {
-    div.classList.add(card.color);
-  }
+  if (card.color) div.classList.add(card.color);
 
   let bgImg = "";
-
   if (card.type === "number") {
     const val = card.value !== undefined ? card.value : "?";
     const numEl = document.createElement("span");
@@ -304,7 +292,7 @@ function createCardElement(card, isTop = false) {
     text.style.fontSize = "2.5rem";
     text.style.fontWeight = "bold";
     div.appendChild(text);
-  } else if (card.type === "plus4" || card.type === "wild+4" || card.type === "wild") {
+  } else if (["plus4", "wild+4", "wild"].includes(card.type)) {
     bgImg = "wildcard.png";
   }
 
