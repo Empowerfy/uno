@@ -7,7 +7,13 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static(path.join(__dirname, "../client")));
+// ✅ Serve static client files
+app.use(express.static(path.join(__dirname, "../Client")));
+
+// ✅ Serve index.html for root route
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "../Client/index.html"));
+});
 
 let lobbies = [];
 let leaderboard = {};
@@ -278,5 +284,5 @@ io.on("connection", socket => {
   });
 });
 
-const PORT = 3000;
-server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
